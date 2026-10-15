@@ -1,0 +1,45 @@
+{
+  "name": "lab12-memorie-langgraph",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "demo1": "tsx src/parte1/demo1-durerea.ts",
+    "demo2": "tsx src/parte1/demo2-store.ts",
+    "demo3": "tsx src/parte1/demo3-agent-memorie.ts",
+    "demo4": "tsx src/parte1/demo4-semantic.ts",
+    "demo4:fals": "EMBEDDINGS_PROVIDER=fals tsx src/parte1/demo4-semantic.ts",
+    "demo5": "tsx src/parte1/demo5-injectare.ts",
+    "demo6": "tsx src/parte1/demo6-tipuri-memorie.ts",
+    "demo7": "tsx src/parte2/demo7-graf-minim.ts",
+    "demo8": "tsx src/parte2/demo8-triaj.ts",
+    "demo9": "tsx src/parte2/demo9-reduceri.ts",
+    "demo10": "tsx src/parte2/demo10-react-de-mana.ts",
+    "demo11": "tsx src/parte2/demo11-memorie-noduri.ts",
+    "exercitiu": "tsx src/parte1/exercitiu-referinta.ts",
+    "exercitiu:schelet": "tsx src/exercitiu/schelet.ts",
+    "exercitiu2": "tsx src/parte2/exercitiu2-referinta.ts",
+    "exercitiu2:schelet": "tsx src/exercitiu/schelet-parte2.ts",
+    "verifica": "tsx src/verificare/test-parte1.ts",
+    "verifica2": "tsx src/verificare/test-parte2.ts",
+    "tipuri": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@langchain/anthropic": "^1.5.10",
+    "@langchain/core": "^1.2.11",
+    "@langchain/google-genai": "^2.3.2",
+    "@langchain/langgraph": "^1.4.15",
+    "@langchain/ollama": "^1.3.0",
+    "@langchain/openai": "^1.5.13",
+    "dotenv": "^17.4.2",
+    "langchain": "^1.5.11",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.3",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.13",
+    "typescript": "^5.6.0"
+  }
+}

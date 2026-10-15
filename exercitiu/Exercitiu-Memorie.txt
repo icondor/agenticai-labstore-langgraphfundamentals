@@ -1,0 +1,128 @@
+EXERCITIU LAB 12, PARTEA 1: ASISTENT DE CALATORII CU MEMORIE (20 minute)
+=========================================================================
+
+CONTEXT DE BUSINESS
+--------------------
+O agentie de turism are un asistent personal. Clientii se intorc: azi cer o
+cazare la Roma, peste o luna una la Viena. Managementul a observat o
+problema: de fiecare data clientul trebuie sa repete "prefer liniste, nu
+mananc fructe de mare, calatoresc cu copii". Ce a spus in conversatia de
+luna trecuta nu mai exista.
+
+In termenii LangGraph: short-term memory (checkpointer, pe thread) exista
+deja. Lipseste long-term memory: SEMANTIC MEMORY (fapte despre client),
+pastrata ca o COLLECTION (cate un item pe fapt), scrisa in HOT PATH (prin
+tool-uri, in timpul conversatiei).
+
+Cerinte, nenegociabile:
+  1. Asistentul retine preferintele unui client INTRE conversatii (thread-uri).
+  2. Memoria unui client NU e niciodata vizibila altui client.
+  3. Clientul poate cere sa uite ceva (drept de stergere).
+  4. Aceeasi informatie spusa de zece ori nu devine zece amintiri.
+
+Puteti folosi un asistent AI, dar TREBUIE sa treceti prin lista de verificare
+de la final si sa raportati exact ce ati vazut in consola, nu ce credeti ca
+ar trebui sa se intample.
+
+
+DE UNDE PORNITI
+----------------
+Fisierul src/exercitiu/schelet.ts are deja: schemele tool-urilor, agentul,
+conversatiile cu model fals si afisarea Store-ului. Voi completati corpul
+celor trei tool-uri (cautati TODO 1, 2, 3). Rulare:
+
+  pnpm exercitiu:schelet
+
+Pana completati tool-urile, rularea va arata "Error: TODO ..." in rezultatele
+tool-urilor. Observati ceva important: eroarea NU opreste agentul. createAgent
+o prinde si o da modelului ca mesaj de tool cu status "error".
+
+
+CE IMPLEMENTATI
+----------------
+  salveazaMemorie(text, categorie: 'preferinta' | 'restrictie' | 'context')
+    -> salveaza o informatie stabila despre client
+
+  cautaMemorie(query)
+    -> intoarce amintirile clientului, una pe linie: "- [cheie] text (categorie)"
+       (store-ul din exercitiu NU are index, deci nu cauta dupa sens: le listeaza)
+
+  stergeMemorie(cheie)
+    -> sterge o amintire dupa id, DOAR din namespace-ul clientului curent
+
+Reguli de proiectare (sunt si punctele de la verificare):
+  - Namespace-ul unei amintiri este [userId, 'memories'].
+  - userId NU apare ca argument al niciunui tool. Nu il vede modelul.
+    Vine din context, pasat de aplicatie la agent.invoke(...).
+  - Aceeasi propozitie salvata a doua oara ramane o singura amintire.
+  - Daca lipseste store-ul sau userId, tool-ul arunca o eroare clara.
+
+
+INDICII
+--------
+  - Store-ul se importa din "@langchain/langgraph". Pachetul "langchain"
+    exporta si el un InMemoryStore, dar ALTA clasa, fara put/search.
+  - Al doilea argument al tool-ului este RUNTIME-ul (tip LangGraphRunnableConfig):
+      runtime.store            Store-ul, pasat la createAgent({ store })
+      runtime.context.userId   contextul, pasat la invoke(..., { context: { userId } })
+  - Metode: put(namespace, key, value), get(namespace, key),
+    search(namespace, { limit }), delete(namespace, key).
+  - search() fara limit intoarce cel mult 10 rezultate.
+  - get() pe o cheie inexistenta intoarce null, nu arunca.
+  - Pentru "nu dubla": functia cheiePentruText(text) e deja in schelet.
+
+
+EXEMPLU DE REZULTAT (rulat efectiv cu implementarea de referinta)
+-----------------------------------------------------------------
+Dupa conv-1, Store-ul citit DIN AFARA conversatiei:
+
+  Store[ionel]: 2 amintiri
+    [9ebbaba8] Prefera hoteluri linistite, fara galagie (preferinta)
+    [23474d6a] Nu mananca fructe de mare (restrictie)
+
+In conv-2 (alt thread), acelasi client, rezultatul lui cautaMemorie contine:
+
+  - [9ebbaba8] Prefera hoteluri linistite, fara galagie (preferinta)
+  - [23474d6a] Nu mananca fructe de mare (restrictie)
+
+Un ALT client ("ana"), conv-3: un mesaj care spune ca nu exista amintiri.
+
+Cheile sunt hash-uri ale textului, deci cu aceleasi texte veti vedea aceleasi
+chei. Formularea mesajelor voastre poate diferi; conteaza structura.
+
+
+LISTA DE VERIFICARE (OBLIGATORIE, cu dovada din consola)
+=========================================================
+
+[ ] 1. Dupa conv-1: continutul Store-ului pentru ionel, citit cu store.search,
+       NU din mesajele conversatiei. Cate amintiri? Cu ce chei?
+
+[ ] 2. Thread NOU, acelasi client: ce intoarce cautaMemorie? Copiati.
+
+[ ] 3. ALT client: ce intoarce cautaMemorie? Ce linie din codul vostru
+       garanteaza asta?
+
+[ ] 4. Aceeasi propozitie, salvata a doua oara: cate amintiri sunt in Store?
+
+[ ] 5. STERGERE: dupa conv-5, cate amintiri are ionel? Care a disparut?
+       Bonus de gandire: daca ionel ar trimite cheia unei amintiri a Anei,
+       ce s-ar intampla cu implementarea voastra? De ce?
+
+[ ] 6. INTREBARE CAPCANA: de ce userId NU este argument al tool-ului? Dati
+       un exemplu CONCRET de mesaj de atac care ar functiona daca userId ar
+       fi argument si nu functioneaza acum. 2-3 propozitii.
+
+[ ] 7. INTREBARE DE RISC, discutie in grup: ce se intampla cu amintirile la
+       restartul procesului? Dar cu doua instante in spatele unui load balancer?
+       Ce ati schimba pentru productie?
+
+[ ] 8. BONUS: in scriptul unei conversatii, puneti in argumentele lui
+       salveazaMemorie si userId: 'ana', cand clientul real este 'ionel'.
+       In memoria cui ajunge amintirea? Ce problema ramane deschisa chiar si
+       dupa ce ati izolat clientii (indiciu: memory poisoning)?
+
+
+CE PREDATI LA FINAL
+--------------------
+Fisierul completat + raspunsurile la punctele 1-8, cu extrasele exacte din
+consola, nu parafrazate.

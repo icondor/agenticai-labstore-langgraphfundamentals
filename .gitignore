@@ -1,0 +1,45 @@
+# Dependencies and package-manager caches
+node_modules/
+.pnpm-store/
+.npm/
+
+# Trainer-only materials
+Ghid-Trainer-*.md
+*.[pP][pP][tT][xX]
+
+# Local environment and credentials
+.env*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Build output, coverage, and tool caches
+dist/
+build/
+coverage/
+.nyc_output/
+.cache/
+.turbo/
+*.tsbuildinfo
+.eslintcache
+.prettiercache
+
+# Logs and temporary files
+*.log
+.tmp-*
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
+*~
+
+# Local editor and operating-system files
+.idea/
+.history/
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini

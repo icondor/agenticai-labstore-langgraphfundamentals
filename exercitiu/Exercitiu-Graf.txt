@@ -1,0 +1,74 @@
+EXERCITIU LAB 12, PARTEA 2: RAMURA «CERE DETALII» IN GRAFUL DE TRIAJ (25 minute)
+================================================================================
+
+CONTEXT DE BUSINESS
+--------------------
+Echipa de suport primeste zilnic tichete de tipul «Nu merge.» sau «Ajutor!!».
+Graful de triaj din demo8 le clasifica oricum si genereaza un raspuns si o nota
+interna, pe baza a nimic. Raspunsul pare profesionist, dar e inventat.
+
+Cerinta: un tichet cu MAI PUTIN DE 6 CUVINTE nu primeste raspuns si nota
+interna. Primeste un singur mesaj politicos care cere detaliile lipsa.
+
+
+DE UNDE PORNITI
+----------------
+src/exercitiu/schelet-parte2.ts. Are deja nodurile din graful de triaj si toate
+legaturile grafului original. Rulare (cere un model real, LLM_PROVIDER):
+
+  pnpm exercitiu2:schelet
+
+Necompletat, scheletul ruleaza graful vechi: ambele tichete primesc raspuns.
+
+
+CE FACETI (cautati TODO)
+-------------------------
+  TODO 1  Functia de rutare ruteazaCuDetalii:
+          «cere_detalii» daca tichetul are sub 6 cuvinte, altfel ce intorcea ruteaza.
+
+  TODO 2  Nodul cereDetalii:
+          modelul scrie, in maxim 2 propozitii, o cerere de detalii.
+          Nodul intoarce raspunsClient si o linie in pasi: "cere_detalii: ...".
+
+  TODO 3  Legaturile:
+          - addNode("cere_detalii", cereDetalii)
+          - "cere_detalii" adaugat in lista de destinatii a lui addConditionalEdges
+          - muchia cere_detalii -> END
+
+
+INDICII
+--------
+  - O functie de rutare primeste starea si intoarce NUMELE nodului urmator
+    (sau o lista de nume, pentru noduri in paralel).
+  - Lista de destinatii din addConditionalEdges trebuie sa contina TOATE
+    numele pe care functia le poate intoarce. Daca uitati "cere_detalii",
+    compile se opreste cu UnreachableNodeError: la nodul nou nu duce nicio muchie.
+  - Un nod intoarce doar campurile pe care le schimba.
+  - text.trim().split(/\s+/) imparte un text in cuvinte.
+
+
+LISTA DE VERIFICARE (OBLIGATORIE, cu dovada din consola)
+=========================================================
+
+[ ] 1. Tichetul «Nu merge.»: copiati jurnalul (pasi). Apare cere_detalii?
+       Apar raspuns_client si nota_interna?
+
+[ ] 2. Tichetul lung: copiati jurnalul. Drumul normal a ramas neschimbat?
+
+[ ] 3. Copiati diagrama Mermaid de la final. Unde apare nodul nou? Muchia
+       spre el e continua sau punctata? De ce?
+
+[ ] 4. Tichetul scurt trece totusi prin clasifica (un apel de model) inainte
+       sa ajunga la cere_detalii. Cum ati muta verificarea ca sa economisiti
+       acel apel? Desenati graful modificat (doar desen, nu cod).
+
+[ ] 5. INTREBARE: de ce regula «sub 6 cuvinte» e in cod si nu in promptul
+       lui clasifica? Dati un exemplu concret in care promptul ar esua.
+
+[ ] 6. BONUS: implementati varianta de la punctul 4 si aratati diagrama.
+
+
+CE PREDATI
+-----------
+Fisierul completat + raspunsurile la punctele 1-6, cu extrasele exacte din
+consola, nu parafrazate.
