@@ -29,6 +29,7 @@ Accesul la Store se face prin **Runtime** (LangGraph 1.0): `runtime.store` si
 pnpm install
 cp .env.example .env.local     # si completeaza cheile
 ```
+
 ## Comenzi
 
 | Comanda                   | Ce face                                                                          | Cere chei?     |
