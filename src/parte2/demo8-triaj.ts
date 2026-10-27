@@ -16,7 +16,8 @@
 //
 // DE URMARIT
 //   - raspuns_client si nota_interna ruleaza in acelasi pas (in paralel);
-//     ordinea lor in jurnal poate varia.
+//     in jurnal apar mereu in aceeasi ordine, pentru ca scrierile se aplica
+//     la finalul pasului. Asta nu spune care a terminat primul.
 //   - finalizeaza ruleaza o singura data, dupa ambele.
 //   - Comportamentul modelului variaza: o alta rulare poate clasifica altfel.
 
