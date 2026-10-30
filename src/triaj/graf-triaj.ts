@@ -25,7 +25,14 @@
 //                     dau InvalidUpdateError (verificat).
 //   addConditionalEdges(sursa, functie, destinatii posibile)
 
-import { StateGraph, StateSchema, ReducedValue, START, END, type GraphNode } from "@langchain/langgraph";
+import {
+  StateGraph,
+  StateSchema,
+  ReducedValue,
+  START,
+  END,
+  type GraphNode,
+} from "@langchain/langgraph";
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { z } from "zod";
 import { schemaTriaj, type Triaj } from "./schema.js";
@@ -33,9 +40,12 @@ import { textulMesajului } from "../lib/afisare.js";
 
 /** Jurnalul pasilor: fiecare nod adauga o linie. Reducer = concatenare. */
 export const campPasi = () =>
-  new ReducedValue(z.array(z.string()).default(() => []), {
-    reducer: (existente: string[], noi: string[]) => [...existente, ...noi],
-  });
+  new ReducedValue(
+    z.array(z.string()).default(() => []),
+    {
+      reducer: (existente: string[], noi: string[]) => [...existente, ...noi],
+    },
+  );
 
 export const StareTriaj = new StateSchema({
   ticket: z.string(),
@@ -59,19 +69,28 @@ export function tonPentru(prioritate: Triaj["prioritate"]): string {
  */
 export function aplicaReguli(t: Triaj): { triaj: Triaj; motiv?: string } {
   if (t.categorie === "facturare" && t.prioritate === "joasa") {
-    return { triaj: { ...t, prioritate: "medie" }, motiv: "facturare ridicata de la joasa la medie" };
+    return {
+      triaj: { ...t, prioritate: "medie" },
+      motiv: "facturare ridicata de la joasa la medie",
+    };
   }
   return { triaj: t };
 }
 
 /** Functia de rutare: citeste starea, intoarce NUMELE nodului (sau nodurilor) urmator. */
-export function ruteaza(s: { triaj?: Triaj }): "escaladeaza" | ["raspuns_client", "nota_interna"] {
-  return s.triaj?.prioritate === "urgenta" ? "escaladeaza" : ["raspuns_client", "nota_interna"];
+export function ruteaza(s: {
+  triaj?: Triaj;
+}): "escaladeaza" | ["raspuns_client", "nota_interna"] {
+  return s.triaj?.prioritate === "urgenta"
+    ? "escaladeaza"
+    : ["raspuns_client", "nota_interna"];
 }
 
 /** Nodurile grafului, separat de legaturi (le refolosim in exercitiu). */
 export function noduriTriaj(model: BaseChatModel) {
-  const clasificator = model.withStructuredOutput(schemaTriaj, { name: "triaj" });
+  const clasificator = model.withStructuredOutput(schemaTriaj, {
+    name: "triaj",
+  });
 
   const clasifica: GraphNode<typeof StareTriaj> = async (s) => {
     const triaj = (await clasificator.invoke([
@@ -83,11 +102,15 @@ export function noduriTriaj(model: BaseChatModel) {
       },
       { role: "user", content: `Tichet:\n${s.ticket}` },
     ])) as Triaj;
-    return { triaj, pasi: [`clasifica: ${triaj.categorie}, ${triaj.prioritate}`] };
+    return {
+      triaj,
+      pasi: [`clasifica: ${triaj.categorie}, ${triaj.prioritate}`],
+    };
   };
 
+  /** Nodul de validare: aplica regulile de business */
   const valideaza: GraphNode<typeof StareTriaj> = async (s) => {
-    const { triaj, motiv } = aplicaReguli(s.triaj!);
+    const { triaj, motiv } = aplicaReguli(s.triaj!); // aplica regulile de business asupra triajului, triajul este
     return { triaj, pasi: [`valideaza: ${motiv ?? "fara modificari"}`] };
   };
 
@@ -102,32 +125,58 @@ export function noduriTriaj(model: BaseChatModel) {
         role: "system",
         content: `Esti agent de suport. Scrie un raspuns ${tonPentru(s.triaj!.prioritate)} catre client, in romana, maxim 4 propozitii. Nu inventa solutii tehnice.`,
       },
-      { role: "user", content: `Rezumatul problemei: ${s.triaj!.rezumat}\nCategorie: ${s.triaj!.categorie}` },
+      {
+        role: "user",
+        content: `Rezumatul problemei: ${s.triaj!.rezumat}\nCategorie: ${s.triaj!.categorie}`,
+      },
     ]);
-    return { raspunsClient: textulMesajului(r), pasi: ["raspuns_client: gata"] };
+    return {
+      raspunsClient: textulMesajului(r),
+      pasi: ["raspuns_client: gata"],
+    };
   };
 
   const notaInterna: GraphNode<typeof StareTriaj> = async (s) => {
     const r = await model.invoke([
       {
         role: "system",
-        content: "Scrie o nota interna scurta pentru echipa de suport: ce trebuie facut, cui se atribuie (dev/billing/support), maxim 2 propozitii.",
+        content:
+          "Scrie o nota interna scurta pentru echipa de suport: ce trebuie facut, cui se atribuie (dev/billing/support), maxim 2 propozitii.",
       },
-      { role: "user", content: `Categorie: ${s.triaj!.categorie}\nPrioritate: ${s.triaj!.prioritate}\nProblema: ${s.triaj!.rezumat}` },
+      {
+        role: "user",
+        content: `Categorie: ${s.triaj!.categorie}\nPrioritate: ${s.triaj!.prioritate}\nProblema: ${s.triaj!.rezumat}`,
+      },
     ]);
     return { notaInterna: textulMesajului(r), pasi: ["nota_interna: gata"] };
   };
 
   // Ruleaza o singura data, dupa ce AMBELE ramuri paralele s-au terminat.
   const finalizeaza: GraphNode<typeof StareTriaj> = async (s) => ({
-    pasi: [`finalizeaza: ${s.raspunsClient ? "raspuns" : "FARA raspuns"} + ${s.notaInterna ? "nota" : "FARA nota"}`],
+    pasi: [
+      `finalizeaza: ${s.raspunsClient ? "raspuns" : "FARA raspuns"} + ${s.notaInterna ? "nota" : "FARA nota"}`,
+    ],
   });
 
-  return { clasifica, valideaza, escaladeaza, raspunsClient, notaInterna, finalizeaza };
+  return {
+    clasifica,
+    valideaza,
+    escaladeaza,
+    raspunsClient,
+    notaInterna,
+    finalizeaza,
+  };
 }
 
 export function creeazaGrafTriaj(model: BaseChatModel) {
-  const { clasifica, valideaza, escaladeaza, raspunsClient, notaInterna, finalizeaza } = noduriTriaj(model);
+  const {
+    clasifica,
+    valideaza,
+    escaladeaza,
+    raspunsClient,
+    notaInterna,
+    finalizeaza,
+  } = noduriTriaj(model);
   return new StateGraph(StareTriaj)
     .addNode("clasifica", clasifica)
     .addNode("valideaza", valideaza)
@@ -137,7 +186,11 @@ export function creeazaGrafTriaj(model: BaseChatModel) {
     .addNode("finalizeaza", finalizeaza)
     .addEdge(START, "clasifica")
     .addEdge("clasifica", "valideaza")
-    .addConditionalEdges("valideaza", ruteaza, ["escaladeaza", "raspuns_client", "nota_interna"])
+    .addConditionalEdges("valideaza", ruteaza, [
+      "escaladeaza",
+      "raspuns_client",
+      "nota_interna",
+    ])
     .addEdge("escaladeaza", "raspuns_client")
     .addEdge("escaladeaza", "nota_interna")
     .addEdge(["raspuns_client", "nota_interna"], "finalizeaza") // fan-in: asteapta ambele

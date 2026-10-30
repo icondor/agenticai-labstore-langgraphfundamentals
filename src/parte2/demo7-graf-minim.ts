@@ -15,7 +15,13 @@
 //   6. drawMermaid(): graful desenat, din cod.
 
 import "../lib/env.js";
-import { StateGraph, StateSchema, START, END, type GraphNode } from "@langchain/langgraph";
+import {
+  StateGraph,
+  StateSchema,
+  START,
+  END,
+  type GraphNode,
+} from "@langchain/langgraph";
 import { z } from "zod";
 import { createModel, readProviderFromEnv } from "../lib/llm.js";
 import { mermaidCurat, textulMesajului, titlu } from "../lib/afisare.js";
@@ -32,7 +38,11 @@ const Stare = new StateSchema({
 // 2. NODUL: primeste starea, intoarce un UPDATE partial (doar rezumat).
 const rezuma: GraphNode<typeof Stare> = async (stare) => {
   const raspuns = await model.invoke([
-    { role: "system", content: "Rezuma tichetul de suport intr-o singura propozitie, in romana." },
+    {
+      role: "system",
+      content:
+        "Rezuma tichetul de suport intr-o singura propoziti, scurta, esentiala, in romana.",
+    },
     { role: "user", content: stare.ticket },
   ]);
   return { rezumat: textulMesajului(raspuns) };

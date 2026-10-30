@@ -12,8 +12,12 @@
 import { z } from "zod";
 
 export const schemaTriaj = z.object({
-  categorie: z.enum(["bug", "functionalitate", "intrebare", "facturare"]).describe("Tipul tichetului"),
-  prioritate: z.enum(["urgenta", "medie", "joasa"]).describe("Cat de repede trebuie tratat"),
+  categorie: z
+    .enum(["bug", "functionalitate", "intrebare", "facturare"])
+    .describe("Tipul tichetului"),
+  prioritate: z
+    .enum(["urgenta", "medie", "joasa"])
+    .describe("Cat de repede trebuie tratat"),
   rezumat: z.string().describe("Rezumatul problemei in maxim o propozitie"),
 });
 export type Triaj = z.infer<typeof schemaTriaj>;
@@ -22,7 +26,7 @@ export type Triaj = z.infer<typeof schemaTriaj>;
 export const TICHETE = {
   urgent: {
     clientId: "acme",
-    text: "Platforma nu mai porneste de azi-dimineata, toti cei 40 de utilizatori ai nostri sunt blocati. Platim abonamentul Enterprise.",
+    text: "Platforma nu mai porneste de azi-dimineata, toti cei 40 de utilizatori ai nostri sunt blocati. Platim abonamentul Enterprise si suntem foarte nervosi si suparati.Nu ne asteptam la asta, va rugam ajutor urgent. Multumim frumos.",
   },
   facturare: {
     clientId: "beta-srl",

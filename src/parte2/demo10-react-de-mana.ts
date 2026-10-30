@@ -9,7 +9,8 @@
 // CE ARATAM
 //   1. Un agent de suport facut din doua noduri si un ciclu, cu doua tool-uri:
 //      verificaStatus si cautaFacturi.
-//   2. Pasii: ce tool-uri cere modelul, ce primeste inapoi, raspunsul final.
+//   2. Pasii ambelor variante, cu aceeasi intrebare si recursionLimit: 10:
+//      ce tool-uri cere modelul, ce primeste inapoi, raspunsul final.
 //   3. Diagrama grafului nostru, langa diagrama grafului construit de createAgent
 //      cu aceleasi tool-uri. Aceeasi forma: model, tools, ciclu, END.
 
@@ -38,8 +39,13 @@ async function main() {
   titlu("Graful nostru");
   console.log(mermaidCurat((await graf.getGraphAsync()).drawMermaid()));
 
-  titlu("Graful lui createAgent, cu aceleasi tool-uri");
+  titlu("ReAct cu createAgent");
   const agent = createAgent({ model, tools: toolsSuport, systemPrompt: SYSTEM });
+  console.log(`> ${intrebare}`);
+  const rAgent = await agent.invoke({ messages: [new HumanMessage(intrebare)] }, { recursionLimit: 10 });
+  afiseazaPasii(rAgent.messages);
+
+  titlu("Graful lui createAgent, cu aceleasi tool-uri");
   console.log(mermaidCurat(await agent.drawMermaid()));
   console.log("\nAceeasi forma: un nod de model, un nod de tools, un ciclu intre ele si o iesire spre END.\n");
 }

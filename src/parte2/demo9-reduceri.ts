@@ -14,7 +14,14 @@
 //   C. Acelasi camp cu ReducedValue (reducer = concatenare): ambele valori
 //      se pastreaza, iar nodul de dupa le vede pe amandoua.
 
-import { StateGraph, StateSchema, ReducedValue, START, END, InvalidUpdateError } from "@langchain/langgraph";
+import {
+  StateGraph,
+  StateSchema,
+  ReducedValue,
+  START,
+  END,
+  InvalidUpdateError,
+} from "@langchain/langgraph";
 import { z } from "zod";
 import { titlu } from "../lib/afisare.js";
 
@@ -24,10 +31,14 @@ const StareSimpla = new StateSchema({
 });
 
 // Camp CU reducer: fiecare update se ADAUGA la ce exista.
+// un reducer concateneaza valorile noi cu cele existente, in loc sa le suprascrie
 const StareCuReducer = new StateSchema({
-  pasi: new ReducedValue(z.array(z.string()).default(() => []), {
-    reducer: (existente: string[], noi: string[]) => [...existente, ...noi],
-  }),
+  pasi: new ReducedValue(
+    z.array(z.string()).default(() => []),
+    {
+      reducer: (existente: string[], noi: string[]) => [...existente, ...noi], // concateneaza valorile existente cu cele noi
+    },
+  ),
 });
 
 async function main() {
@@ -39,7 +50,11 @@ async function main() {
     .addEdge("raspuns_client", "nota_interna")
     .addEdge("nota_interna", END)
     .compile();
-  console.log("  pasi =", (await a.invoke({})).pasi, " (raspuns_client a disparut)");
+  console.log(
+    "  pasi =",
+    (await a.invoke({})).pasi,
+    " (raspuns_client a disparut)",
+  );
 
   titlu("B. in paralel, fara reducer: eroare");
   const b = new StateGraph(StareSimpla)
@@ -54,21 +69,27 @@ async function main() {
     await b.invoke({});
     console.log("  (nicio eroare?)");
   } catch (e) {
-    console.log(`  ${e instanceof InvalidUpdateError ? "InvalidUpdateError" : "eroare"}: ${(e as Error).message.split("\n")[0]}`);
+    console.log(
+      `  ${e instanceof InvalidUpdateError ? "InvalidUpdateError" : "eroare"}: ${(e as Error).message.split("\n")[0]}`,
+    );
   }
 
   titlu("C. in paralel, CU reducer: ambele raman");
   const c = new StateGraph(StareCuReducer)
     .addNode("raspuns_client", async () => ({ pasi: ["raspuns_client"] }))
     .addNode("nota_interna", async () => ({ pasi: ["nota_interna"] }))
-    .addNode("finalizeaza", async (s) => ({ pasi: [`finalizeaza (vede ${s.pasi.length} intrari)`] }))
+    .addNode("finalizeaza", async (s) => ({
+      pasi: [`finalizeaza (vede ${s.pasi.length} intrari)`],
+    }))
     .addEdge(START, "raspuns_client")
     .addEdge(START, "nota_interna")
     .addEdge(["raspuns_client", "nota_interna"], "finalizeaza") // fan-in: asteapta ambele
     .addEdge("finalizeaza", END)
     .compile();
   console.log("  pasi =", (await c.invoke({})).pasi);
-  console.log("\n  MessagesValue, pe care il folosim pentru mesaje, este tot un camp cu reducer.\n");
+  console.log(
+    "\n  MessagesValue, pe care il folosim pentru mesaje, este tot un camp cu reducer.\n",
+  );
 }
 
 main().catch(console.error);
